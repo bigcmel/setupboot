@@ -7,54 +7,45 @@ void print_nand_id();
 BYTE* __main()
 {
 
-  /* 各种初始化 */
-
-  //  WT_init();
-  
-  //  CLK_init();
-
-  //  MC_init();
-
   int i;
-  BYTE* ptr;
+  BYTE* boot_ptr;
   BYTE* str;
 
-  ptr = (BYTE*)0x33100011;
-  str = "HELLO";
+  boot_ptr = (BYTE*)(0x33000000);
+  str = (BYTE*)(0x33100000);
+
 
   GPIO_init();
 
   Uart_init(115200);
-  Uart_SendString("Boot!\n",6);
-  
-/*
-  LCD_init();
-  LCD_EnvidOnOff(1);
-  LCD_ClearScr(0x343434);
-*/
+  Uart_SendString("setup boot to nand...\n",22);
 
-  //  while(1){}
-
-  /*
   NF_init();
 
-  print_nand_id();
+  // 要写之前必须先擦除
+  if( NF_EraseBlock(0) == 0 )
+    Uart_SendString("Erase Fail!\n",12);
 
-
-  if( NF_WritePage(0, 1, str) == 0 )
-    Uart_SendString("Write Fail!\n",12);
-
-  if( NF_ReadPage(0, 1, ptr) )
+  for(i=0;i<2;i++)
     {
-      Uart_SendString(ptr,100);
-      Uart_SendString("\n",1);
+      if( NF_WritePage(0, i, boot_ptr) == 0 )
+	Uart_SendString("Write Fail!\n",12);
+      
+      boot_ptr += 2048;
     }
-  else
-    Uart_SendString("Read Fail!\n",11);
 
-  Uart_SendString(ptr,2048);
-  Uart_SendString("\n",1);
-  */
+  for(i=0;i<2;i++)
+    {
+      if( NF_ReadPage(0, i, str) )
+	Uart_SendString(str,2048);	
+      else
+      	Uart_SendString("Read Fail!\n",11);
+
+      str += 2048;
+    }
+
+
+  while(1){}
 
   return (BYTE*)LOADER_BASE_ADDR;
 }

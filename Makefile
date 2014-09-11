@@ -19,9 +19,9 @@ DASMFLAGS	= -D -b binary -m arm
 LIBPATH		= -lgcc -L $(ARM-TOOLS-PATH)/../lib/gcc/arm-none-linux-gnueabi/4.4.3	# 添加 gcc 提供的静态库，比如提供了除法功能的软实现，因为 arm 的硬件没有提供除法功能
 
 # This Program
-NANSLBOOT	= boot.bin
-NANSLBOOTELF	= boot.elf
-OBJS		= startup.o main.o clock.o gpio.o uart.o nand_flash.o
+NANSLBOOT	= setupboot.bin
+NANSLBOOTELF	= setupbootboot.elf
+OBJS		= startup.o main.o gpio.o uart.o nand_flash.o
 DASMOUTPUT	= boot.bin.asm
 
 # All Phony Targets
