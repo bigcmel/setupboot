@@ -166,7 +166,7 @@ WORD NF_CheckId()
 
 /* Function: 以页为单位读 Nand Flash
    参数：block 块号；page 页号；buffer 读到的缓冲区 
-   返回值：0 读错误；1 读成功 */
+   返回值：0 读错误；1 读成功 
 
 WORD NF_ReadPage(WORD block,WORD page,BYTE* buffer)
 {
@@ -222,7 +222,7 @@ WORD NF_ReadPage(WORD block,WORD page,BYTE* buffer)
   
   NF_nFCE_H(); // 取消片选
 
-  /* 下面就是验证 ECC 校验码了 */
+  //* 下面就是验证 ECC 校验码了 /
 
   if(( NFESTAT0 & 0xf ) == 0x0)
       return 1; // ECC 校验成功
@@ -230,7 +230,7 @@ WORD NF_ReadPage(WORD block,WORD page,BYTE* buffer)
       return 0; // ECC 校验不成功
 
 }
-
+*/
 
 /* Function: 查看指定的块是否是坏块
    参数：block 要查看的块号
