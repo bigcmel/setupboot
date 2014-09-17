@@ -1,77 +1,96 @@
 #include "proto.h"
 
-#define LOADER_BASE_ADDR 0x33000000 // loader.bin 加载到内存中的地址
+#define BOOT_BASE_ADDR 0x30000000
+#define LOADER_BASE_ADDR 0x30001000
+#define KERNEL_BASE_ADDR 0x30004000
+#define SETUPLOADER_BASE_ADDR 0x31000000
 
-void print_nand_id();
+#define BOOT_BLOCK_BASE 0
+#define BOOT_PAGE_BASE 0
+#define BOOT_BLOCK_NUM 1
+#define BOOT_PAGE_NUM 2
+
+#define LOADER_BLOCK_BASE 0
+#define LOADER_PAGE_BASE 2
+#define LOADER_BLOCK_NUM 1
+#define LOADER_PAGE_NUM 3
+
+#define KERNEL_BLOCK_BASE 1
+#define KERNEL_PAGE_BASE 0
+#define KERNEL_BLOCK_NUM 1
+#define KERNEL_PAGE_NUM 32
 
 BYTE* __main()
 {
 
   int i;
-  BYTE* boot_ptr;
-  BYTE* str;
-
-  boot_ptr = (BYTE*)(0x33000000);
-  str = (BYTE*)(0x33100000);
+  BYTE* src_ptr;
 
 
   GPIO_init();
 
   Uart_init(115200);
-  Uart_SendString("setup boot to nand...\n",22);
 
   NF_init();
 
   // 要写之前必须先擦除
-  if( NF_EraseBlock(0) == 0 )
-    Uart_SendString("Erase Fail!\n",12);
+  for(i=BOOT_BLOCK_BASE; i<(KERNEL_BLOCK_BASE+1); i++)
+    if( NF_EraseBlock(i) == 0 )
+      Uart_SendString("Erase Fail!\n",12);
 
-  for(i=0;i<2;i++)
+  // 开始安装 boot 到 nand
+  src_ptr = (BYTE*)BOOT_BASE_ADDR;
+
+  if(BOOT_BLOCK_NUM == 1)
     {
-      if( NF_WritePage(0, i, boot_ptr) == 0 )
-	Uart_SendString("Write Fail!\n",12);
+      Uart_SendString("setup boot to nand...\n",22);
+
+      for(i=BOOT_PAGE_BASE; i<(BOOT_PAGE_BASE + BOOT_PAGE_NUM); i++)
+	{
+	  if( NF_WritePage(BOOT_BLOCK_BASE, i, src_ptr) == 0 )
+	    Uart_SendString("Write Fail!\n",12);
       
-      boot_ptr += 2048;
+	  src_ptr += 2048;
+	}
     }
 
-  for(i=0;i<2;i++)
+  // 开始安装 loader 到 nand
+  src_ptr = (BYTE*)LOADER_BASE_ADDR;
+
+  if(LOADER_BLOCK_NUM == 1)
     {
-      if( NF_ReadPage(0, i, str) )
-	Uart_SendString(str,2048);	
-      else
-      	Uart_SendString("Read Fail!\n",11);
+      Uart_SendString("setup loader to nand...\n",24);
 
-      str += 2048;
+      for(i=LOADER_PAGE_BASE; i<(LOADER_PAGE_BASE + LOADER_PAGE_NUM); i++)
+	{
+	  if( NF_WritePage(LOADER_BLOCK_BASE, i, src_ptr) == 0 )
+	    Uart_SendString("Write Fail!\n",12);
+      
+	  src_ptr += 2048;
+	}
     }
 
+  /*/ 开始安装 kernel 到 nand
+  src_ptr = (BYTE*)KERNEL_BASE_ADDR;
 
+  if(KERNEL_BLOCK_NUM == 1)
+    {
+      Uart_SendString("setup boot to nand...\n",22);
+
+      for(i=KERNEL_PAGE_BASE; i<(KERNEL_PAGE_BASE + KERNEL_PAGE_NUM); i++)
+	{
+	  if( NF_WritePage(KERNEL_BLOCK_BASE, i, src_ptr) == 0 )
+	    Uart_SendString("Write Fail!\n",12);
+      
+	  src_ptr += 2048;
+	}
+    }
+  */
   while(1){}
 
-  return (BYTE*)LOADER_BASE_ADDR;
+  return (BYTE*)SETUPLOADER_BASE_ADDR;
 }
 
 // gcc 的静态库要求链接到的函数，为空就好
 void raise()
 {}
-
-void print_nand_id()
-{
-  HWORD id;
-  BYTE maker, device;
-
-  /*
-  device = (BYTE)id;
-  maker = (BYTE)(id >> 8);
-  Uart_SendByte(maker);
-  Uart_SendByte(device);
-  Uart_SendByte('\n');
-  */
-
-  id = NF_CheckId();
-  device = (BYTE)id;
-  maker = (BYTE)(id >> 8);
-
-  Uart_SendByte(maker);
-  Uart_SendByte(device);
-  Uart_SendByte('\n');
-}

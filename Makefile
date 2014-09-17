@@ -20,7 +20,7 @@ LIBPATH		= -lgcc -L $(ARM-TOOLS-PATH)/../lib/gcc/arm-none-linux-gnueabi/4.4.3	# 
 
 # This Program
 NANSLBOOT	= setupboot.bin
-NANSLBOOTELF	= setupbootboot.elf
+NANSLBOOTELF	= setupboot.elf
 OBJS		= startup.o main.o gpio.o uart.o nand_flash.o
 DASMOUTPUT	= boot.bin.asm
 
